@@ -12,7 +12,7 @@ pub struct Email {
     pub body: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 #[hdk_entry_helper]
 pub struct EmailCredentials {
     pub sender_email_address: String,

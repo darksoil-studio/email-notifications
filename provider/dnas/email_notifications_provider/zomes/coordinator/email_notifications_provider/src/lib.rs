@@ -23,7 +23,7 @@ pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
 
 #[hdk_extern]
 pub fn send_email(input: SendEmailInput) -> ExternResult<()> {
-    let Some(credentials) = email_credentials::get_current_email_credentials()? else {
+    let Some(credentials) = email_credentials::get_current_email_credentials(())? else {
         return Err(wasm_error!(WasmErrorInner::Guest(String::from(
             "email authority hasn't registered a service account key yet"
         ))));

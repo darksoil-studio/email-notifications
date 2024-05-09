@@ -114,8 +114,8 @@ test("setup provider, sender and recipient, and send an email", async (t) => {
               fn_name: "get_notifications_settings_for",
               payload: recipient.agentPubKey,
             });
-          // Send email
 
+          // Send email
           const recipientNotificationsSettings = new EntryRecord<any>(settings)
             .entry;
           const selectedProvider =

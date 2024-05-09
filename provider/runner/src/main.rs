@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Duration};
 
 use clap::{Parser, Subcommand};
 use email_notifications_types::{EmailCredentials, SendEmailSignal};
@@ -8,12 +8,30 @@ use lettre::{transport::smtp::authentication::Credentials, Message, SmtpTranspor
 
 mod launch;
 
-use launch::{install_app, launch_holochain};
+use launch::{authorize_app, install_app, launch_holochain};
+use url2::Url2;
+
+fn parse_url(arg: &str) -> anyhow::Result<Url2> {
+    Ok(Url2::try_parse(arg)?)
+}
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
+    /// Path to the .happ bundle for the email notifications provider app
+    email_notifications_provider_happ: PathBuf,
+
+    /// Network seed for the app to be installed
+    #[arg(long)]
+    network_seed: String,
+
+    #[arg(long, default_value = "https://bootstrap.holo.host", value_parser = parse_url)]
+    bootstrap_url: Url2,
+
+    #[arg(long, default_value = "wss://signal.holo.host", value_parser = parse_url)]
+    signal_url: Url2,
+
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -45,41 +63,56 @@ async fn main() {
 
 const PROVIDER_APP_ID: &'static str = "email_notifications_provider";
 
-fn provider_app_bundle() -> AppBundle {
-    let bytes = include_bytes!("../../app/email_notifications_provider.happ");
-    AppBundle::decode(bytes).unwrap()
+fn provider_app_bundle(provider_app_bundle_path: PathBuf) -> anyhow::Result<AppBundle> {
+    let bytes = std::fs::read(provider_app_bundle_path)?;
+    Ok(AppBundle::decode(bytes.as_slice())?)
 }
 
 async fn run() -> anyhow::Result<()> {
-    let holochain_info = launch_holochain().await?;
+    let args = Args::parse();
 
-    let mut admin_ws =
-        AdminWebsocket::connect(format!("ws://localhost:{}", holochain_info.admin_port)).await?;
+    let always_online = args.command.is_none();
+
+    let conductor_handle = launch_holochain(
+        args.network_seed.clone(),
+        always_online,
+        args.bootstrap_url,
+        args.signal_url,
+    )
+    .await?;
+
+    let admin_port = conductor_handle
+        .get_arbitrary_admin_websocket_port()
+        .expect("Could not get admin port");
+
+    let mut admin_ws = AdminWebsocket::connect(format!("ws://localhost:{}", admin_port)).await?;
 
     let apps = admin_ws
         .list_apps(None)
         .await
         .map_err(|err| anyhow::anyhow!("Could not connect to admin ws: {err:?}"))?;
 
+    let app_auth = authorize_app(&mut admin_ws, PROVIDER_APP_ID.into()).await?;
+
     if apps.len() == 0 {
         install_app(
             &mut admin_ws,
             String::from(PROVIDER_APP_ID),
-            provider_app_bundle(),
+            provider_app_bundle(args.email_notifications_provider_happ)?,
             HashMap::new(),
-            None,
+            Some(args.network_seed),
         )
         .await?;
     }
 
-    let mut app_agent_ws = AppAgentWebsocket::connect(
-        format!("ws://localhost:{}", holochain_info.app_port),
-        PROVIDER_APP_ID.into(),
-        holochain_info.lair_client,
+    let mut app_ws = AppWebsocket::connect(
+        format!("ws://localhost:{}", app_auth.app_websocket_port),
+        app_auth.token,
+        Arc::new(LairAgentSigner::new(Arc::new(
+            conductor_handle.keystore().lair_client(),
+        ))),
     )
     .await?;
-
-    let args = Args::parse();
 
     if let Some(Commands::RegisterCredentials {
         sender_email_address,
@@ -93,22 +126,43 @@ async fn run() -> anyhow::Result<()> {
             smtp_relay_url,
         };
 
-        app_agent_ws
+        app_ws
             .call_zome(
-                "email_notifications_provider".into(),
+                ZomeCallTarget::RoleName("email_notifications_provider".into()),
                 "email_notifications_provider".into(),
                 "publish_new_email_credentials".into(),
-                ExternIO::encode(email_credentials)?,
+                ExternIO::encode(email_credentials.clone())?,
             )
             .await
             .map_err(|err| anyhow::anyhow!("Failed to publish email credentials: {err:?}"))?;
+
+        std::thread::sleep(Duration::from_secs(3));
+
+        let result = app_ws
+            .call_zome(
+                ZomeCallTarget::RoleName("email_notifications_provider".into()),
+                "email_notifications_provider".into(),
+                "get_current_email_credentials".into(),
+                ExternIO::encode(email_credentials.clone())?,
+            )
+            .await
+            .map_err(|err| anyhow::anyhow!("Failed to get email credentials: {err:?}"))?;
+
+        let maybe_published_email_credentials: Option<EmailCredentials> = result.decode()?;
+
+        let published_email_credentials =
+            maybe_published_email_credentials.expect("There are no published email credentials");
+        if !published_email_credentials.eq(&email_credentials) {
+            panic!("The published email credentials were not successfully gossiped: try again.");
+        }
+
         println!("Successfully registered new email credentials");
 
         std::process::exit(0);
     }
 
     // Listen for signal
-    app_agent_ws
+    app_ws
         .on_signal(|signal| {
             let Signal::App { signal, .. } = signal else {
                 return ();

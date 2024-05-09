@@ -3,7 +3,7 @@
 {
   perSystem = { inputs', config, pkgs, system, lib, self', options, ... }: {
     packages = {
-      email_notifications_provider-app = inputs.hc-infra.outputs.lib.happ {
+      email_notifications_provider-happ = inputs.hc-infra.outputs.lib.happ {
         holochain = inputs'.holochain;
         happManifest = ./happ.yaml;
         dnas = {

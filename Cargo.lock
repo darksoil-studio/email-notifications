@@ -1562,6 +1562,7 @@ dependencies = [
  "holochain",
  "holochain_client",
  "holochain_keystore",
+ "holochain_types",
  "lettre",
  "portpicker",
  "tokio",

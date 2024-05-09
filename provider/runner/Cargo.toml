@@ -13,6 +13,7 @@ either = "1.10.0"
 holochain = { workspace = true }
 holochain_client = "0.5.0-dev"
 holochain_keystore = "0.3.0-beta-dev"
+holochain_types = "0.3.0-beta-dev"
 portpicker = "0.1.1"
 tokio = { version = "1.36.0", features = ["full"] }
 url2 = "0.0.6"

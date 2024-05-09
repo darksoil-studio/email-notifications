@@ -33,7 +33,8 @@ pub fn publish_new_email_credentials(credentials: EmailCredentials) -> ExternRes
     Ok(())
 }
 
-pub fn get_current_email_credentials() -> ExternResult<Option<EmailCredentials>> {
+#[hdk_extern]
+pub fn get_current_email_credentials(_: ()) -> ExternResult<Option<EmailCredentials>> {
     let links = get_links(
         GetLinksInputBuilder::try_new(
             email_credentials_path().path_entry_hash()?,

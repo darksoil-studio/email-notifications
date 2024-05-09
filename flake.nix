@@ -14,6 +14,7 @@
     scaffolding = { url = "github:holochain-open-dev/templates"; };
 
     notifications.url = "github:darksoil-studio/notifications";
+    crane.url = "github:ipetkov/crane";
   };
 
   nixConfig = {

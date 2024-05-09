@@ -2,7 +2,7 @@
   "name": "tests",
   "private": true,
   "scripts": {
-    "test": "nix build -L -o fixture/email_notifications_provider-debug.happ .#email_notifications_provider-app.meta.debug && nix build -L -o fixture/fixture.happ .#fixture-happ.meta.debug && vitest run",
+    "test": "nix build -L -o fixture/email_notifications_provider-debug.happ .#email_notifications_provider-happ.meta.debug && nix build -L -o fixture/fixture.happ .#fixture-happ.meta.debug && vitest run",
     "pack:fixture": "hc app pack ./fixture/workdir --recursive"
   },
   "author": "",
