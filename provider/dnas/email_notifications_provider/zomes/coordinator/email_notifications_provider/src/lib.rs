@@ -6,7 +6,7 @@ mod email_credentials;
 #[hdk_extern]
 pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
     let response = call(
-        CallTargetCell::OtherRole("email_notifications_service".into()),
+        CallTargetCell::OtherRole("email_notifications_bridge".into()),
         ZomeName::from("email_notifications_service"),
         "announce_as_provider".into(),
         None,

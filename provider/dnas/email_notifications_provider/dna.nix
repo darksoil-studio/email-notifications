@@ -13,7 +13,7 @@
       zomes = {
         email_notifications_provider_integrity =
           self'.packages.email_notifications_provider_integrity;
-        email_notifications_provider_coordinator =
+        email_notifications_provider =
           self'.packages.email_notifications_provider_coordinator;
       };
     };

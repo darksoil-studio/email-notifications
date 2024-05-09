@@ -10,7 +10,7 @@ integrity:
       dependencies: ~
 coordinator:
   zomes:
-    - name: email_notifications_provider_coordinator
+    - name: email_notifications_provider
       hash: ~
       dependencies:
         - name: email_notifications_provider_integrity

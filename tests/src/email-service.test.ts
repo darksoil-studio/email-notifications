@@ -22,7 +22,6 @@ test("setup provider, sender and recipient, and send an email", async (t) => {
         { appBundleSource: { path: testHappUrl } },
         { appBundleSource: { path: testHappUrl } },
       ]);
-      console.log(provider.namedCells);
 
       const providerServiceCell = provider.namedCells.get(
         "email_notifications_bridge",
@@ -31,7 +30,9 @@ test("setup provider, sender and recipient, and send an email", async (t) => {
         "email_notifications_provider",
       );
       assert.equal(
-        sender.namedCells.get("fixture_dna").cell_id[0].toString(),
+        sender.namedCells
+          .get("email_notifications_service")
+          .cell_id[0].toString(),
         providerServiceCell.cell_id[0].toString(),
       );
 
@@ -68,6 +69,12 @@ test("setup provider, sender and recipient, and send an email", async (t) => {
         payload: {
           settings_by_notification_type: {
             [NOTIFICATION_TYPE]: {
+              enabled: true,
+              providers: ["work_email"],
+            },
+          },
+          available_notification_providers: {
+            work_email: {
               type: "Email",
               email_address: emailAddress,
             },
@@ -108,12 +115,22 @@ test("setup provider, sender and recipient, and send an email", async (t) => {
               payload: recipient.agentPubKey,
             });
           // Send email
+
+          const recipientNotificationsSettings = new EntryRecord<any>(settings)
+            .entry;
+          const selectedProvider =
+            recipientNotificationsSettings.settings_by_notification_type[
+              NOTIFICATION_TYPE
+            ].providers[0];
+          const email_address =
+            recipientNotificationsSettings.available_notification_providers[
+              selectedProvider
+            ].email_address;
           sender.namedCells.get("email_notifications_service").callZome({
             zome_name: "email_notifications_service",
             fn_name: "request_send_email",
             payload: {
-              email_address: new EntryRecord<any>(settings).entry
-                .settings_by_notification_type[NOTIFICATION_TYPE].email_address,
+              email_address,
               email,
             },
           });
