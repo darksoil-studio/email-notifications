@@ -1,0 +1,29 @@
+---
+manifest_version: "1"
+name: email_notifications_provider
+description: ~
+roles:
+  - name: email_notifications_bridge
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      modifiers:
+        network_seed: ~
+        properties: ~
+        origin_time: ~
+        quantum_time: ~
+      installed_hash: ~
+      clone_limit: 0
+  - name: email_notifications_provider
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      modifiers:
+        network_seed: ~
+        properties: ~
+        origin_time: ~
+        quantum_time: ~
+      installed_hash: ~
+      clone_limit: 0

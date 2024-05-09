@@ -1,0 +1,18 @@
+[package]
+name = "email_notifications_service_coordinator"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "email_notifications_service_coordinator"
+
+[dependencies]
+hdk = { workspace = true }
+
+serde = { workspace = true }
+
+email_notifications_service_integrity = { path = "../../integrity/email_notifications_service" }
+email_notifications_types = { path = "../../../../crates/email_notifications_types" }
+# trait_pending_notifications = { workspace = true }
+# traits = { workspace = true }

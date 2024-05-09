@@ -1,0 +1,17 @@
+---
+manifest_version: "1"
+name: fixture_dna
+integrity:
+  network_seed: ~
+  properties: ~
+  origin_time: 1703170182915758
+  zomes:
+    - name: notifications_integrity
+      hash: ~
+      bundled: "<NIX BUNDLED>"
+coordinator:
+  zomes:
+    - name: notifications
+      bundled: "<NIX BUNDLED>"
+      dependencies:
+        - name: notifications_integrity

@@ -1,0 +1,22 @@
+[profile.dev]
+opt-level = "z"
+
+[profile.release]
+opt-level = "z"
+
+[workspace]
+members = [
+  "crates/*",
+  "service/zomes/coordinator/*",
+  "service/zomes/integrity/*",
+  "provider/dnas/*/zomes/integrity/*",
+  "provider/dnas/*/zomes/coordinator/*",
+  "provider/runner",
+]
+resolver = "2"
+
+[workspace.dependencies]
+hdi = "0.4.0-beta-dev"
+hdk = "0.3.0-beta-dev"
+holochain = "0.3.0-beta-dev.48"
+serde = "1.0.193"

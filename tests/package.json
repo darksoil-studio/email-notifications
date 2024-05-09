@@ -1,0 +1,17 @@
+{
+  "name": "tests",
+  "private": true,
+  "scripts": {
+    "test": "nix build -L -o fixture/email_notifications_provider-debug.happ .#email_notifications_provider-app.meta.debug && nix build -L -o fixture/fixture.happ .#fixture-happ.meta.debug && vitest run",
+    "pack:fixture": "hc app pack ./fixture/workdir --recursive"
+  },
+  "author": "",
+  "dependencies": {
+    "@holochain/client": "^0.17.0-dev.12",
+    "@holochain/tryorama": "^0.16.0-dev.0",
+    "@holochain-open-dev/utils": "^0.300.0-dev.0",
+    "@msgpack/msgpack": "^2.7.0",
+    "vitest": "^1.0.0"
+  },
+  "type": "module"
+}

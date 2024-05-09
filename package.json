@@ -1,0 +1,7 @@
+{
+  "name": "email-notifications-dev",
+  "private": true,
+  "scripts": {
+    "test": "pnpm -F tests test"
+  }
+}
